@@ -2,9 +2,9 @@ import pickle
 import regex as re
 import warnings
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 import os
 import uvicorn
-from fastapi.responses import RedirectResponse
 
 app = FastAPI(
     title="Multilingual Spam Detection API",
