@@ -12,7 +12,7 @@ app = FastAPI(
     version="1.0",
     contact={
         "name": "Sakthi Prakash",
-        "url": "https://github.com/your_username/your_repository",
+        "url": "https://github.com/SAKTHIPRAKASH28/Multilingual-SMS-Spam-Prediction-API",
         "email": "sakthiprakash403@gmail.com",
     },
     license_info={
