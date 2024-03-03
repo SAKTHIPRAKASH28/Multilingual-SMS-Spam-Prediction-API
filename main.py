@@ -4,6 +4,7 @@ import warnings
 from fastapi import FastAPI
 import os
 import uvicorn
+from fastapi.responses import RedirectResponse
 
 app = FastAPI(
     title="Multilingual Spam Detection API",
@@ -79,7 +80,7 @@ def extract_features(message):
 
 @app.get("/")
 def read_root():
-    return {"Welcome": "This is a multilingual spam detection API. Use the '/predict' endpoint to classify messages as Ham or Spam. The model supports various languages including Tamil, English, Malayalam, Kannada, and Telugu."}
+    return RedirectResponse("/docs")
 
 
 @app.get('/predict')
