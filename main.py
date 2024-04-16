@@ -1,10 +1,12 @@
 import pickle
+
 import regex as re
 import warnings
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse,JSONResponse
 import os
 import uvicorn
+
 
 app = FastAPI(
     title="Multilingual Spam Detection API",
@@ -48,7 +50,6 @@ with open('model.pkl', 'rb') as file:
 
 
 def extract_features(message):
-
     http_pattern = re.compile(
         r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))")
     phone_pattern = re.compile(
@@ -58,37 +59,50 @@ def extract_features(message):
     has_http_link = 1 if http_pattern.search(message) else 0
     has_phone_number = 1 if phone_pattern.search(message) else 0
 
-    keywords_in_message = [
-        word for word in spam_keywords if word in message.lower()]
+    keywords_in_message = [word for word in spam_keywords if word in message.lower()]
     keywords = 1 if keywords_in_message else 0
-
-    greeting_words_in_message = [
-        word for word in greeting_words if word in message.lower()]
+    
+    greeting_words_in_message = [word for word in greeting_words if word in message.lower()]
     has_greeting_words = 1 if greeting_words_in_message else 0
 
     distinct_words = count_distinct_words(message)
 
+    # Store occurrences of features
+    http_links = [link.group() for link in http_pattern.finditer(message)]
+    phone_numbers = [phone.group() for phone in phone_pattern.finditer(message)]
+
     return (
-        has_http_link,
-        has_phone_number,
-        length,
-        has_greeting_words,
-        distinct_words,
-        keywords
+        (
+            has_http_link,
+            has_phone_number,
+            length,
+            has_greeting_words,
+            distinct_words,
+            keywords
+        ),
+        {
+            "HTTP": http_links,
+            "PHONE": phone_numbers,
+
+            "KEYWORDS":keywords_in_message,
+            "GREETINGS":greeting_words_in_message
+        }
     )
 
-
 @app.get("/")
-def read_root():
+async def read_root():
     return RedirectResponse("/docs")
 
 
 @app.get('/predict')
 async def predict(message: str) -> dict:
 
-    features = extract_features(message)
+    ft = extract_features(message)
+    features=ft[0]
     prediction = clf.predict([features])
-    return {"prediction": "Ham" if not prediction[0] else "Spam"}
+
+ 
+    return JSONResponse(content={"prediction": "Ham" if not prediction[0] else "Spam","vectors":ft[1]})
 
 
 if __name__ == "__main__":
