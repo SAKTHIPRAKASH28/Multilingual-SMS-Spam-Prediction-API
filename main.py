@@ -1,6 +1,6 @@
-import pickle
 
 import regex as re
+import joblib
 import warnings
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse,JSONResponse
